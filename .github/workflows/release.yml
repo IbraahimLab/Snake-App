@@ -37,21 +37,21 @@ jobs:
           $version = "${{ github.ref_name }}".TrimStart("v")
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\SnakeApp.iss" "/DMyAppVersion=$version"
 
-      - name: Restore code signing certificate
-        if: ${{ secrets.WINDOWS_CERT_BASE64 != '' && secrets.WINDOWS_CERT_PASSWORD != '' }}
+      - name: Sign binaries when certificate is configured
         shell: pwsh
         run: |
-          $bytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_CERT_BASE64 }}")
+          $certBase64 = "${{ secrets.WINDOWS_CERT_BASE64 }}"
+          $certPassword = "${{ secrets.WINDOWS_CERT_PASSWORD }}"
+          if (-not $certBase64 -or -not $certPassword) {
+            Write-Host "Code signing secrets not set. Publishing unsigned artifacts."
+            exit 0
+          }
+          $bytes = [Convert]::FromBase64String($certBase64)
           [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\codesign.pfx", $bytes)
-
-      - name: Sign binaries
-        if: ${{ secrets.WINDOWS_CERT_BASE64 != '' && secrets.WINDOWS_CERT_PASSWORD != '' }}
-        shell: pwsh
-        run: |
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe was not found." }
-          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "${{ secrets.WINDOWS_CERT_PASSWORD }}" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "dist\SnakeApp.exe"
-          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "${{ secrets.WINDOWS_CERT_PASSWORD }}" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "release\SnakeApp-Setup.exe"
+          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "$certPassword" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "dist\SnakeApp.exe"
+          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "$certPassword" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "release\SnakeApp-Setup.exe"
 
       - name: Prepare release assets
         shell: pwsh
