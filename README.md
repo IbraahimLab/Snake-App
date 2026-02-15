@@ -1,29 +1,104 @@
 # Snake App
 
-Desktop Snake game for Windows (Tkinter) with a React landing page for Vercel deployment.
+Arcade focus. Zero fluff.  
+`Snake App` is a desktop Snake game built with Python + Tkinter, shipped as a Windows executable, with a premium React landing page ready for Vercel.
 
-## Repo Layout
+## Live Links
 
-- `app/`: desktop game source
-- `installer/`: Inno Setup script
-- `scripts/`: local build helpers
-- `landing/`: React marketing/download page
-- `.github/workflows/release.yml`: tag-based release pipeline
+- Latest release: `https://github.com/IbraahimLab/Snake-App/releases/latest`
+- Repository: `https://github.com/IbraahimLab/Snake-App`
 
-## Run Desktop App Locally
+## What You Get
+
+- Fast desktop gameplay loop
+- Persistent best score across sessions
+- In-app update check against GitHub Releases
+- Windows packaging pipeline (`.exe`, portable zip, installer)
+- Tag-based GitHub Actions release automation
+- Modern landing page in `landing/` (React + Vite + Vercel)
+
+## Gameplay
+
+Goal: survive as long as possible and push your score higher each run.
+
+- Eat food to grow and gain points
+- Avoid walls and your own body
+- Recover fast after game over and restart instantly
+
+### Controls
+
+- `Arrow Keys` or `WASD`: Move
+- `Space` or `P`: Pause
+- `R`: Restart run
+- `Esc`: Exit game
+
+## Tech Stack
+
+### Desktop Game
+
+- Python `3.13`
+- Tkinter UI
+- Local config/log persistence in `%LOCALAPPDATA%/SnakeApp`
+
+### Distribution
+
+- PyInstaller (standalone exe)
+- Inno Setup (Windows installer)
+- GitHub Actions (CI release pipeline)
+
+### Landing
+
+- React + Vite
+- Static deploy on Vercel
+
+## Project Structure
+
+```text
+Snake-App/
+  app/
+    main.py
+    version.py
+    game/
+  installer/
+    SnakeApp.iss
+  scripts/
+    build_windows.bat
+  landing/
+    src/
+    index.html
+    package.json
+    vercel.json
+  .github/workflows/
+    release.yml
+  requirements-dev.txt
+  README.md
+```
+
+## Quick Start (Local Dev)
+
+### 1. Run the desktop game
 
 ```bash
 python app/main.py
 ```
 
-Controls:
+### 2. Run landing page locally
 
-- Arrow keys / WASD: move
-- `Space` or `P`: pause
-- `R`: restart
-- `Esc`: exit
+```bash
+cd landing
+npm install
+npm run dev
+```
 
-## Build Windows Executable Locally
+## Build Windows Artifacts Locally
+
+Install build dependency:
+
+```bash
+python -m pip install -r requirements-dev.txt
+```
+
+Build executable + portable zip:
 
 ```bash
 scripts\build_windows.bat
@@ -31,10 +106,10 @@ scripts\build_windows.bat
 
 Outputs:
 
-- `dist/SnakeApp.exe` (standalone exe)
+- `dist/SnakeApp.exe`
 - `release/SnakeApp-portable-windows-x64.zip`
 
-To build an installer locally, install Inno Setup and run:
+Build installer (if Inno Setup installed):
 
 ```bash
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\SnakeApp.iss
@@ -44,49 +119,69 @@ Output:
 
 - `release/SnakeApp-Setup.exe`
 
-## Publish Release (GitHub)
+## Release Flow (GitHub)
 
-1. Commit and push `main`.
-2. Create and push a tag:
-   - `git tag -a v1.0.0 -m "First release"`
+The workflow in `.github/workflows/release.yml` publishes on tag push.
+
+### Release steps
+
+1. Commit + push `main`
+2. Create version tag:
+   - `git tag -a v1.0.0 -m "v1.0.0"`
    - `git push origin v1.0.0`
 3. GitHub Actions builds and uploads:
-   - installer exe
-   - portable zip
-   - checksums
+   - `SnakeApp-Setup-windows-x64.exe`
+   - `SnakeApp-portable-windows-x64.zip`
+   - `SHA256SUMS.txt`
 
-## Optional Code Signing in CI
+## Code Signing (Recommended)
 
-Add these repo secrets:
+Unsigned apps can trigger SmartScreen warnings.  
+To sign in CI, set repository secrets:
 
-- `WINDOWS_CERT_BASE64`: base64-encoded `.pfx`
-- `WINDOWS_CERT_PASSWORD`: cert password
+- `WINDOWS_CERT_BASE64` (base64 of `.pfx`)
+- `WINDOWS_CERT_PASSWORD`
 
-If missing, release is still published unsigned.
+If not set, release still publishes unsigned binaries.
 
-## Landing Page (React + Vercel)
+## Landing Deployment (Vercel)
 
-Local dev:
+1. Import this repo in Vercel
+2. Set **Root Directory** to `landing`
+3. Deploy
 
-```bash
-cd landing
-npm install
-npm run dev
-```
-
-Production build:
+Useful commands:
 
 ```bash
 cd landing
 npm run build
+npm run preview
 ```
 
-Deploy to Vercel:
+## Logging and Persistence
 
-1. Import this GitHub repo in Vercel.
-2. Set **Root Directory** to `landing`.
-3. Deploy.
+Desktop app stores data in:
 
-The download button points to:
+- Logs: `%LOCALAPPDATA%\SnakeApp\logs\snake.log`
+- Config/high score: `%LOCALAPPDATA%\SnakeApp\config.json`
 
-- `https://github.com/IbraahimLab/Snake-App/releases/latest`
+## Troubleshooting
+
+- `pyinstaller` not found:
+  - run `python -m pip install -r requirements-dev.txt`
+- Installer build fails:
+  - verify Inno Setup is installed at `C:\Program Files (x86)\Inno Setup 6\`
+- Landing build fails:
+  - run `cd landing && npm install` then `npm run build`
+
+## Roadmap Ideas
+
+- Sound effects + background music toggle
+- Difficulty modes (speed tiers)
+- Leaderboard sync
+- Signed production builds
+- Auto-update installer experience
+
+---
+
+Built to be easy to run, easy to ship, and hard to stop playing.
