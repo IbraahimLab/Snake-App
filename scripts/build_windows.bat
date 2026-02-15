@@ -11,7 +11,7 @@ pyinstaller app\main.py --name SnakeApp --windowed --onefile --clean --noconfirm
 if not exist release mkdir release
 
 echo [3/3] Creating portable zip...
-pwsh -NoProfile -Command "Compress-Archive -Path 'dist/SnakeApp.exe' -DestinationPath 'release/SnakeApp-portable-windows-x64.zip' -Force"
+tar -a -c -f release\SnakeApp-portable-windows-x64.zip -C dist SnakeApp.exe
 
 echo Build complete.
 echo - EXE: dist\SnakeApp.exe
