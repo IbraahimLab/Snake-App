@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Build standalone exe
+        run: pyinstaller app/main.py --name SnakeApp --windowed --onefile --clean --noconfirm
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\SnakeApp.iss" "/DMyAppVersion=$version"
+
+      - name: Restore code signing certificate
+        if: ${{ secrets.WINDOWS_CERT_BASE64 != '' && secrets.WINDOWS_CERT_PASSWORD != '' }}
+        shell: pwsh
+        run: |
+          $bytes = [Convert]::FromBase64String("${{ secrets.WINDOWS_CERT_BASE64 }}")
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP\codesign.pfx", $bytes)
+
+      - name: Sign binaries
+        if: ${{ secrets.WINDOWS_CERT_BASE64 != '' && secrets.WINDOWS_CERT_PASSWORD != '' }}
+        shell: pwsh
+        run: |
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe was not found." }
+          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "${{ secrets.WINDOWS_CERT_PASSWORD }}" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "dist\SnakeApp.exe"
+          & $signtool.FullName sign /f "$env:RUNNER_TEMP\codesign.pfx" /p "${{ secrets.WINDOWS_CERT_PASSWORD }}" /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" "release\SnakeApp-Setup.exe"
+
+      - name: Prepare release assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "artifacts" -Force | Out-Null
+          Copy-Item "release\SnakeApp-Setup.exe" "artifacts\SnakeApp-Setup-windows-x64.exe" -Force
+          Compress-Archive -Path "dist\SnakeApp.exe" -DestinationPath "artifacts\SnakeApp-portable-windows-x64.zip" -Force
+          Get-FileHash "artifacts\SnakeApp-Setup-windows-x64.exe","artifacts\SnakeApp-portable-windows-x64.zip" -Algorithm SHA256 | ForEach-Object {
+            "$($_.Hash)  $($_.Path | Split-Path -Leaf)"
+          } | Set-Content "artifacts\SHA256SUMS.txt" -Encoding ascii
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/SnakeApp-Setup-windows-x64.exe
+            artifacts/SnakeApp-portable-windows-x64.zip
+            artifacts/SHA256SUMS.txt

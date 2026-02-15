@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.spec
+.venv/
+venv/
+build/
+dist/
+release/
+
+# Logs and local app data
+*.log
+
+# Node / frontend
+landing/node_modules/
+landing/dist/
+.vercel/
+
+# OS noise
+.DS_Store
+Thumbs.db
