@@ -114,6 +114,24 @@ p {
   line-height: 1.55;
 }
 
+.pill-row {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(130, 170, 255, 0.35);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.88rem;
+  color: #c9d9ff;
+  background: rgba(19, 30, 75, 0.65);
+}
+
 .cta-row {
   display: flex;
   flex-wrap: wrap;
@@ -158,7 +176,14 @@ p {
 }
 
 .panel {
-  margin-bottom: 22px;
+  margin-bottom: 30px;
+}
+
+.three-col {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .funnel-track {
@@ -227,9 +252,19 @@ p {
   margin-bottom: 10px;
 }
 
+.card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+
 .card p {
   color: var(--ink-soft);
   line-height: 1.56;
+}
+
+.spotlight {
+  border-color: rgba(125, 154, 255, 0.42);
+  background: linear-gradient(150deg, rgba(26, 35, 86, 0.76), rgba(27, 20, 72, 0.56));
 }
 
 .two-col {
@@ -243,6 +278,29 @@ p {
   padding-left: 18px;
   color: var(--ink-soft);
   line-height: 1.7;
+}
+
+.tier {
+  position: relative;
+}
+
+.tier-label {
+  display: inline-flex;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #95bfff;
+}
+
+.faq-stack {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.faq {
+  border-color: rgba(140, 160, 255, 0.3);
 }
 
 .cta-band {
@@ -294,6 +352,7 @@ p {
 }
 
 @media (max-width: 920px) {
+  .three-col,
   .two-col {
     grid-template-columns: 1fr;
   }
